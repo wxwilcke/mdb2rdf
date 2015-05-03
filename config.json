@@ -1,0 +1,19 @@
+{
+	"masterTable": "01_Hoofdtabel_Kerken",
+	"namespaceResource": "http://data.spider-ld.org/KerkenNL",
+	"namespaceOntology": "http://ont.spider-ld.org/KerkenNL",
+	"delimeterResource": "#",
+	"delimeterOntology": "#",
+	"outputFormat": "N-TRIPLES",
+	"excludedTables": [
+		"Lookup_Brontype",
+		"Lookup_Denominatie",
+		"Lookup_Huidige_bestemming",
+		"Lookup_Monumentenstatus",
+		"Lookup_School",
+		"Lookup_Stijl",
+		"Lookup_Vorm_type",
+		"Lookup_Waardevol_interieur"
+	]
+
+}

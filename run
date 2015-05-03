@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# ./run 
+
+DB="Kerken_database_1800-1970.mdb"
+#MASTER="01_Hoofdtabel_Kerken"
+#EXCL="exclusions"
+CONFIG="config.json"
+
+JAVACMD="java"
+FLAGS=""
+
+BINDIR="./bin/"
+LIBDIR="./lib/"
+INDIR="./input/"
+OUTDIR="./output/"
+
+CP="$BINDIR"
+for lib in $(ls "$LIBDIR"); do
+	CP+=":$LIBDIR$lib"
+done
+
+MAIN="Convert"
+
+# execute
+"$JAVACMD" -cp "$CP" "$MAIN" -d "$INDIR$DB" -c "$CONFIG"
+
+echo "Done"
