@@ -15,7 +15,6 @@ public class Convert {
 	public static void main(String[] args) {
 		List<String> d	= new ArrayList<String>();
 		List<String> c	= new ArrayList<String>();
-		List<String> v	= new ArrayList<String>();
 
 		String flag = new String();
 		for(int count = 0; count < args.length; count++) {

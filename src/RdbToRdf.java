@@ -11,12 +11,13 @@ import com.hp.hpl.jena.rdf.model.ResourceFactory;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.Statement;
+import com.hp.hpl.jena.rdf.model.ResIterator;
 
 // assumption made is that the primary key is an integer (LONG)
 public class RdbToRdf {
 	private String DB_PATH; // path pointing to the database
 	private Config CONFIG; // configuration
-	private Model model;
+	private Model MODEL;
 
 	/*
 	 * Constructors
@@ -24,7 +25,7 @@ public class RdbToRdf {
 	public RdbToRdf() {
 		DB_PATH		= null;
 		CONFIG		= null;
-		model 		= ModelFactory.createDefaultModel();
+		MODEL 		= ModelFactory.createDefaultModel();
 	}
 
 	public RdbToRdf(String db, Config config) {
@@ -65,25 +66,13 @@ public class RdbToRdf {
 				Table table = db.getTable(tableName);
 			
 				for(Row row : table) {
-					int id			= row.getInt(getPrimaryKeyIndex(table)); 
-					Resource rcs	= ResourceFactory.createResource(genMRURI(tableName, String.valueOf(id)));
+					String key		= getPrimaryKeyIndex(table);
+					Resource rcs	= ResourceFactory.createResource(genMRURI(tableName, String.valueOf(row.getInt(key))));
 
-					// link resource to existing resource if already present
-					// in model
-/*					if (model.containsResource(rcs)) {
-						Resource existingRcs	= model.getResource(rcs.getURI());
-						Property p				= ResourceFactory.createProperty(new String(NAMESPACE + "#" + tableName));
-						Statement s				= ResourceFactory.createStatement(existingRcs, p, rcs);
-
-						// add statement if not already present
-						if (!model.contains(s)) {
-							model.add(s);
-						}
-					} */
 
 					// create and add all attributes of resource
-					Statement[] sa	= convertRowToStatement(row, rcs, id);
-					addRowToModel(sa);
+					List<Statement> sa	= convertRowToStatement(row, rcs);
+					addRowToMODEL(sa, key, tableName);
 				}
 			}
 
@@ -93,16 +82,30 @@ public class RdbToRdf {
 			// nothing
 		}
 	
-		model.write(System.out, (String) getConfig().get("outputFormat"));
+		MODEL.write(System.out, (String) getConfig().get("outputFormat"));
 	}
 
-	// add every statement to the model iff it is not already present
-	private void addRowToModel(Statement[] sa) {
-		for (int i = 0; i < sa.length; i++) {
-			if (model.contains(sa[i])) {
+	// add every statement to the MODEL iff it is not already present
+	private void addRowToMODEL(List<Statement> sa, String key, String puri) {
+		for (Statement s : sa) {
+			if (MODEL.contains(s)) {
 				continue;
 			}
-			model.add(sa[i]);
+			// add to existing resource with same key if exists
+			if (s.getPredicate().getLocalName().equals(key)) {
+				ResIterator it	=	MODEL.listResourcesWithProperty(s.getPredicate(), s.getObject());
+				if (it.hasNext()) { // assume all members are equal
+					Resource rsc	= it.nextResource(); // get parent
+					Property p	= ResourceFactory.createProperty(genOURI(), puri);
+					Statement st	= ResourceFactory.createStatement(rsc, p, s.getSubject());
+
+					MODEL.add(st);
+
+					continue;
+				}
+			}
+
+			MODEL.add(s);
 		}
 	}
 
@@ -110,7 +113,7 @@ public class RdbToRdf {
 	// return the tables within the database, minus those explicitly excluded
 	private List<String> getTables(Database db) {
 		List<String> tables	= new ArrayList<String>();
-		List<String> excluded	= (List<String>) getConfig().get("excludedTables");
+		@SuppressWarnings("unchecked") List<String> excluded	= (List<String>) getConfig().get("excludedTables");
 
 		try {
 			tables = new ArrayList<String>(db.getTableNames());
@@ -133,16 +136,12 @@ public class RdbToRdf {
 
 	// create an array of statements from the attribute-value pairs within the
 	// row
-	private Statement[] convertRowToStatement(Row row, Resource rcs, int id) {
-		Statement[] sa	= new Statement[row.size()];
+	private List<Statement> convertRowToStatement(Row row, Resource rcs) {
+		List<Statement> sa	= new ArrayList<Statement>(row.size()); 
 		int i = 0;
 		
 		Set<String> attrs = row.keySet();
 		for (String attr : attrs) {
-			if (attr.equals(id)) { // omit primary key from becoming a node
-				continue;
-			}
-			
 			Resource attrRcs;
 			Object value	= row.get(attr);
 			if (value == null) { // dealing with empty values
@@ -151,10 +150,10 @@ public class RdbToRdf {
 				attrRcs	= ResourceFactory.createResource(genRURI(value.toString()));
 			}
 
-			Property p	= ResourceFactory.createProperty(genOURI(attr.toString()));
+			Property p	= ResourceFactory.createProperty(genOURI(), attr.toString());
 			Statement s	= ResourceFactory.createStatement(rcs, p, attrRcs);
 			
-			sa[i++]	= s;
+			sa.add(s);
 		}
 
 		return sa;
@@ -171,8 +170,8 @@ public class RdbToRdf {
 	}
 	
 	//generate ontology uri
-	private String genOURI(String property) {
-		return (new String((String) getConfig().get("namespaceOntology") + (String) getConfig().get("delimeterOntology") + property));
+	private String genOURI() {
+		return (new String((String) getConfig().get("namespaceOntology") + (String) getConfig().get("delimeterOntology")));
 	}
 
 	// determine and return the primary key of a table

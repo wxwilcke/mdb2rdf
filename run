@@ -3,8 +3,6 @@
 # ./run 
 
 DB="Kerken_database_1800-1970.mdb"
-#MASTER="01_Hoofdtabel_Kerken"
-#EXCL="exclusions"
 CONFIG="config.json"
 
 JAVACMD="java"

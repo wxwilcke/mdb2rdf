@@ -44,7 +44,7 @@ public class Config {
 	public String toString() {
 		String result	= new String();
 
-		for(Iterator iterator = CONFIGURATION.keySet().iterator(); iterator.hasNext();) {
+		for(Iterator<?> iterator = CONFIGURATION.keySet().iterator(); iterator.hasNext();) {
 				String key = (String) iterator.next();
 				result += new String(key + ":" + CONFIGURATION.get(key));
 
