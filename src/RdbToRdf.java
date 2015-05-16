@@ -13,6 +13,7 @@ import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.rdf.model.ResIterator;
+import com.hp.hpl.jena.datatypes.xsd.XSDDatatype;
 
 // assumption made is that the primary key is an integer (LONG)
 public class RdbToRdf {
@@ -82,8 +83,15 @@ public class RdbToRdf {
 		} catch (IOException e) {
 			// nothing
 		}
+
+		resolve(); // determine whether resources exist on the SW
 	
 		MODEL.write(System.out, (String) getConfig().get("outputFormat"));
+	}
+
+	private void resolve() {
+		// TODO
+		return;
 	}
 
 	// add every statement to the MODEL iff it is not already present
@@ -149,7 +157,6 @@ public class RdbToRdf {
 				attrRcs	= ResourceFactory.createResource(); //bnode
 			} else {
 				attrRcs	= createRDFNode(table.getColumn(attr), value);
-			//	attrRcs	= ResourceFactory.createResource(genRURI(value.toString()));
 			}
 
 			Property p	= ResourceFactory.createProperty(genOURI(), attr.toString());
@@ -168,17 +175,50 @@ public class RdbToRdf {
 		switch(t) {
 			case TEXT:	
 			case MEMO:
+			case GUID:
 				if (isLiteralValue(value.toString())) {
-					// TODO: add language option
-					node	= ResourceFactory.createPlainLiteral(value.toString());
+					if ((Boolean) getConfig().get("useLangTag")) {
+						String lang	= (String) getConfig().get("langTag");
+						node	= ResourceFactory.createLangLiteral(value.toString(), lang);
+					}
+					else {
+						node	= ResourceFactory.createPlainLiteral(value.toString());
+					}
 					break;
 				}
 
-				node	= ResourceFactory.createResource(resolveURI(value.toString()));
+				node	= ResourceFactory.createResource(genRURI(value.toString()));
 				break;
-
+			case BINARY:
+				node	= ResourceFactory.createTypedLiteral(value.toString(), XSDDatatype.XSDbase64Binary);
+				break;
+			case BOOLEAN:
+				node	= ResourceFactory.createTypedLiteral(value.toString(), XSDDatatype.XSDboolean);
+				break;
+			case BYTE:
+				node	= ResourceFactory.createTypedLiteral(value.toString(), XSDDatatype.XSDbyte);
+				break;
+			case DOUBLE:
+				node	= ResourceFactory.createTypedLiteral(value.toString(), XSDDatatype.XSDdouble);
+				break;
+			case FLOAT:
+				node	= ResourceFactory.createTypedLiteral(value.toString(), XSDDatatype.XSDfloat);
+				break;
+			case INT:
+				node	= ResourceFactory.createTypedLiteral(value.toString(), XSDDatatype.XSDint);
+				break;
+			case LONG:
+			case COMPLEX_TYPE:
+				node	= ResourceFactory.createTypedLiteral(value.toString(), XSDDatatype.XSDlong);
+				break;
+			case NUMERIC:
+			case MONEY:
+				node	= ResourceFactory.createTypedLiteral(value.toString(), XSDDatatype.XSDdecimal);
+				break;
+			case SHORT_DATE_TIME:
+				node	= ResourceFactory.createTypedLiteral(value.toString(), XSDDatatype.XSDdate);
+				break;
 			default:
-				// TODO: add datatype
 				node	= ResourceFactory.createPlainLiteral(value.toString());
 				break;
 		}
@@ -192,23 +232,12 @@ public class RdbToRdf {
 	}
 
 	private Boolean isSentence(String s) {
-		//return s.matches("[^.!?\\s][^.!?]*(?:[.!?](?!['\"]?\\s|$)[^.!?]*)*[.!?]?['\"]?(?=\\s|$)");
 		return s.matches("[^.!?\\s][^.!?]*(?:[.!?](?!['\"]?$)[^.!?]*)*[.!?]?['\"]?(?=\\s|$)");
 	}
 
 	private Boolean isURL(String s) {
 		// source: mathiasbynens.be/demo/url-regex
 		return s.matches("_^(?:(?:https?|ftp)://)(?:\\S+(?::\\S*)?@)?(?:(?!10(?:\\.\\d{1,3}){3})(?!127(?:\\.\\d{1,3}){3})(?!169\\.254(?:\\.\\d{1,3}){2})(?!192\\.168(?:\\.\\d{1,3}){2})(?!172\\.(?:1[6-9]|2\\d|3[0-1])(?:\\.\\d{1,3}){2})(?:[1-9]\\d?|1\\d\\d|2[01]\\d|22[0-3])(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){2}(?:\\.(?:[1-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-4]))|(?:(?:[a-z\\x{00a1}-\\x{ffff}0-9]+-?)*[a-z\\x{00a1}-\\x{ffff}0-9]+)(?:\\.(?:[a-z\\x{00a1}-\\x{ffff}0-9]+-?)*[a-z\\x{00a1}-\\x{ffff}0-9]+)*(?:\\.(?:[a-z\\x{00a1}-\\x{ffff}]{2,})))(?::\\d{2,5})?(?:/[^\\s]*)?$_iuS");
-	}
-
-	private String resolveURI(String value) {
-		String uri	= new String();
-
-		// TODO: search Semantic Web for existing one
-
-		uri	= genRURI(value);
-
-		return uri;
 	}
 
 	//generate master resource uri
