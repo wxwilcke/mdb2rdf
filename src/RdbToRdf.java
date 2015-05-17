@@ -176,13 +176,16 @@ public class RdbToRdf {
 			case TEXT:	
 			case MEMO:
 			case GUID:
-				if (isLiteralValue(value.toString())) {
+				if (isURI(value.toString())) {
+					node	= ResourceFactory.createTypedLiteral(value.toString(), XSDDatatype.XSDanyURI);
+					break;
+				} else if (isSentence(value.toString())) {
 					if ((Boolean) getConfig().get("useLangTag")) {
 						String lang	= (String) getConfig().get("langTag");
 						node	= ResourceFactory.createLangLiteral(value.toString(), lang);
 					}
 					else {
-						node	= ResourceFactory.createPlainLiteral(value.toString());
+						node	= ResourceFactory.createTypedLiteral(value.toString(), XSDDatatype.XSDstring);
 					}
 					break;
 				}
@@ -226,16 +229,11 @@ public class RdbToRdf {
 		return node;
 	}
 
-	// heuristical method to determine whether it is a literal or not
-	private Boolean isLiteralValue(String s) {
-		return (isSentence(s) || isURL(s));
-	}
-
 	private Boolean isSentence(String s) {
 		return s.matches("[^.!?\\s][^.!?]*(?:[.!?](?!['\"]?$)[^.!?]*)*[.!?]?['\"]?(?=\\s|$)");
 	}
 
-	private Boolean isURL(String s) {
+	private Boolean isURI(String s) {
 		// source: mathiasbynens.be/demo/url-regex
 		return s.matches("_^(?:(?:https?|ftp)://)(?:\\S+(?::\\S*)?@)?(?:(?!10(?:\\.\\d{1,3}){3})(?!127(?:\\.\\d{1,3}){3})(?!169\\.254(?:\\.\\d{1,3}){2})(?!192\\.168(?:\\.\\d{1,3}){2})(?!172\\.(?:1[6-9]|2\\d|3[0-1])(?:\\.\\d{1,3}){2})(?:[1-9]\\d?|1\\d\\d|2[01]\\d|22[0-3])(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){2}(?:\\.(?:[1-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-4]))|(?:(?:[a-z\\x{00a1}-\\x{ffff}0-9]+-?)*[a-z\\x{00a1}-\\x{ffff}0-9]+)(?:\\.(?:[a-z\\x{00a1}-\\x{ffff}0-9]+-?)*[a-z\\x{00a1}-\\x{ffff}0-9]+)*(?:\\.(?:[a-z\\x{00a1}-\\x{ffff}]{2,})))(?::\\d{2,5})?(?:/[^\\s]*)?$_iuS");
 	}

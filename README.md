@@ -1,2 +1,2 @@
 # mdb2rdf
-Generic Relational Database to RDF Tool
+MS Access DB to RDF Conversion Tool
