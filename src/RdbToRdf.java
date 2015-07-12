@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.ResourceFactory;
@@ -153,8 +154,8 @@ public class RdbToRdf {
 		for (String attr : attrs) {
 			RDFNode attrRcs;
 			Object value	= row.get(attr);
-			if (value == null) { // dealing with empty values
-				attrRcs	= ResourceFactory.createResource(); //bnode
+			if (value == null || excludedValue(attr.toString(), value.toString())) { // dealing with empty and excluded values
+				continue;
 			} else {
 				attrRcs	= createRDFNode(table.getColumn(attr), value);
 			}
@@ -166,6 +167,13 @@ public class RdbToRdf {
 		}
 
 		return sa;
+	}
+
+	private Boolean excludedValue(String p, String v) {
+		@SuppressWarnings("unchecked") Map<String, String> excluded	= (Map<String, String>) getConfig().get("excludedValues");
+		
+		// assume one placeholder per predicate
+		return (!excluded.isEmpty() && excluded.containsKey(p) && excluded.get(p).equals(v));
 	}
 
 	private RDFNode createRDFNode(Column column, Object value) {

@@ -1,9 +1,11 @@
 {
 	"masterTable": "01_Hoofdtabel_Kerken",
 	"namespaceResource": "http://data.spider-ld.org/KerkenNL",
-	"namespaceOntology": "http://ont.spider-ld.org/KerkenNL",
-	"delimeterResource": "#",
-	"delimeterOntology": "#",
+	"namespaceOntology": "http://data.spider-ld.org/KerkenNL",
+	"delimeterResource": "/",
+	"delimeterOntology": "/",
+	"useLangTag": true,
+	"langTag": "nl",
 	"outputFormat": "N-TRIPLES",
 	"excludedTables": [
 		"Lookup_Brontype",
@@ -14,6 +16,18 @@
 		"Lookup_Stijl",
 		"Lookup_Vorm_type",
 		"Lookup_Waardevol_interieur"
-	]
-
+	],
+	"excludedValues": {
+		"Architect": "Nb",
+		"Auteur": "Nb",
+		"Gemeente_monument_ID": "Nb",
+		"Naam_Kerk": "Nb",
+		"Van": "0",
+		"Tot": "0",
+		"Rijksmonument_nummer": "0",
+		"Jaar_Consecratie": "0",
+		"Jaar_buiten_gebruik": "0",
+		"Jaar_ingebruikname": "0",
+		"Huisnummer": "0",
+	}
 }

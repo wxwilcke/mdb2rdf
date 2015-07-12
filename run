@@ -22,5 +22,3 @@ MAIN="Convert"
 
 # execute
 "$JAVACMD" -cp "$CP" "$MAIN" -d "$INDIR$DB" -c "$CONFIG"
-
-echo "Done"
