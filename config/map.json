@@ -1,0 +1,12 @@
+{
+	"resources" {
+		"01_Hoofdtabel_Kerken" : ":kerk"
+	},
+	"predicates" {
+		"01_Hoofdtabel_Kerken.Straatnaam" : "bag:openbareruimtenaam",
+		"01_Hoofdtabel_Kerken.Huisnummer" : "bag:huisnummer",
+		"01_Hoofdtabel_Kerken.Plaats" : "bag:woonplaats",
+		"01_Hoofdtabel_Kerken.Toponiem-Streek" : "locn:geographicName",
+		"011_Naam_Kerk.Naam_Kerk" : "dcterms:title"
+	}
+}
